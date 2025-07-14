@@ -1,0 +1,6 @@
+.
+├── Dockerfile
+├── app.py       # your application code
+└── .github
+    └── workflows
+        └── docker-publish.yml
