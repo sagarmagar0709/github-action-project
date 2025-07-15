@@ -1,3 +1,11 @@
+
+
+#1**Trigger** – Runs on every push to the `main` branch.
+#2. **Checkout** – Pulls your repo code into the runner.
+#3. **Docker Login** – Authenticates to Docker Hub using secrets.
+#4. **Build** – Builds the Docker image as `sagarmagar0709/myapp:latest`.
+#5. **Push** – Pushes the image to Docker Hub.
+
 name: Build and Push Docker Image to Docker Hub
 
 on:
