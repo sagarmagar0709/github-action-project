@@ -9,4 +9,4 @@ def hello():
     return "Hello from GitHub Actions + Docker!"
 
 if __name__ == '__main__':
-    app.run(host='102.33.3.2', port=9090)
+    app.run(host='102.33.3.2', port=9000)
