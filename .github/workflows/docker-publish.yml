@@ -6,7 +6,7 @@
 #4. **Build** – Builds the Docker image as `sagarmagar0709/myapp:latest`.
 #5. **Push** – Pushes the image to Docker Hub.
 
-name: Build, Push, and Update Deployment YAML
+name: Build and Update Deployment YAML
 
 on:
   push:
@@ -14,40 +14,34 @@ on:
       - main
 
 jobs:
-  build-and-update:
+  update-yaml:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Docker Login
+      - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build Docker Image
+      - name: Build Docker image
         run: docker build -t sagarmagar0709/myapp:latest .
 
-      - name: Push Docker Image
+      - name: Push Docker image to Docker Hub
         run: docker push sagarmagar0709/myapp:latest
 
-      - name: Update image tag in deployment.yaml
+      - name: Update image in deployment.yaml
         run: |
-          sed -i 's|image: .*|image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
+          sed -i 's|^\s*image:.*|          image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
+          cat k8s/deployment.yaml
 
-      - name: Commit and Push updated deployment.yaml
+      - name: Commit and push updated deployment.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-
-          # Set the remote URL to use the token for authentication
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
-
           git add k8s/deployment.yaml
-
-          # Check if there are any changes
           git diff --cached --quiet && echo "No changes to commit" || git commit -m "chore: update image tag to latest"
-
-          # Push only if commit exists
           git push || echo "Nothing to push"
