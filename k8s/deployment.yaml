@@ -25,7 +25,7 @@ jobs:
 
       - name: Update image in deployment.yaml
         run: |
-          sed -i 's|image: .*|image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
+          sed -i 's|image: sagarmagar0709/myapp:latest
 
       - name: Commit and push updated deployment.yaml
         run: |
