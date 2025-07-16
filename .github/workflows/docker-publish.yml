@@ -41,5 +41,3 @@ jobs:
           git add k8s/deployment.yaml
           git commit -m "chore: update image tag to latest"
           git push
-
-        run: docker push sagarmagar0709/myapp:latest
