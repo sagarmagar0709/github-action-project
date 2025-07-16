@@ -1,0 +1,35 @@
+name: Build and Update Deployment YAML
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-yaml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t sagarmagar0709/myapp:latest .
+
+      - name: Push Docker image to Docker Hub
+        run: docker push sagarmagar0709/myapp:latest
+
+      - name: Update image in deployment.yaml
+        run: |
+          sed -i 's|image: .*|image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
+
+      - name: Commit and push updated deployment.yaml
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add k8s/deployment.yaml
+          git commit -m "chore: update image tag to latest"
+          git push
