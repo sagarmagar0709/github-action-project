@@ -6,26 +6,40 @@
 #4. **Build** – Builds the Docker image as `sagarmagar0709/myapp:latest`.
 #5. **Push** – Pushes the image to Docker Hub.
 
-name: Build and Push Docker Image to Docker Hub
+name: Build, Push, and Update Deployment YAML
 
 on:
   push:
     branches:
-      - main  # or any other branch you prefer
+      - main
 
 jobs:
-  docker:
+  build-and-update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build Docker image
+      - name: Build Docker Image
         run: docker build -t sagarmagar0709/myapp:latest .
 
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker Image
+        run: docker push sagarmagar0709/myapp:latest
+
+      - name: Update deployment.yaml with new image tag
+        run: |
+          sed -i 's|image: .*|image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
+
+      - name: Commit and Push updated deployment.yaml
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add k8s/deployment.yaml
+          git commit -m "chore: update image tag to latest"
+          git push
+
         run: docker push sagarmagar0709/myapp:latest
