@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: myapp
-        image: sagarmagar/myapp:latest
+        image: nikunj3011/games:latest
         ports:
         - containerPort: 8080
 #
