@@ -6,7 +6,7 @@
 #4. **Build** – Builds the Docker image as `sagarmagar0709/myapp:latest`.
 #5. **Push** – Pushes the image to Docker Hub.
 
-name: Build, Push, and Update Deployment YAML with Timestamp
+name: Build, Push, and Update Deployment YAML
 
 on:
   push:
@@ -18,39 +18,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Generate timestamp tag
-        id: tag
-        run: echo "TAG=$(date -u +%Y%m%d%H%M)" >> $GITHUB_OUTPUT
-
-      - name: Log in to Docker Hub
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build Docker image with timestamp tag
-        run: docker build -t sagarmagar0709/myapp:${{ steps.tag.outputs.TAG }} .
+      - name: Build Docker Image
+        run: docker build -t sagarmagar0709/myapp:latest .
 
-      - name: Push Docker image
-        run: docker push sagarmagar0709/myapp:${{ steps.tag.outputs.TAG }}
+      - name: Push Docker Image
+        run: docker push sagarmagar0709/myapp:latest
 
-      - name: Update image in deployment.yaml
+      - name: Update deployment.yaml with new image tag
         run: |
-          echo "Before:"
-          grep image: k8s/deployment.yaml || true
+          sed -i 's|image: .*|image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
 
-          sed -i "s|^\s*image:.*|          image: sagarmagar0709/myapp:${{ steps.tag.outputs.TAG }}|" k8s/deployment.yaml
-
-          echo "After:"
-          grep image: k8s/deployment.yaml || true
-
-      - name: Commit and push updated deployment.yaml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and Push updated deployment.yaml
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add k8s/deployment.yaml
-          git diff --cached --quiet && echo "No changes to commit" || git commit -m "chore: update image tag to ${{ steps.tag.outputs.TAG }}"
+          git commit -m "chore: update image tag to latest"
           git push
