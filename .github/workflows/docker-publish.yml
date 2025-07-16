@@ -6,7 +6,7 @@
 #4. **Build** – Builds the Docker image as `sagarmagar0709/myapp:latest`.
 #5. **Push** – Pushes the image to Docker Hub.
 
-name: Build and Update Deployment YAML
+name: Build, Push, and Update Deployment YAML with Timestamp
 
 on:
   push:
@@ -14,28 +14,32 @@ on:
       - main
 
 jobs:
-  update-yaml:
+  build-and-update:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Set Image Tag (timestamp)
+        id: vars
+        run: echo "TAG=$(date -u +%Y%m%d%H%M)" >> $GITHUB_OUTPUT
+
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build Docker image
-        run: docker build -t sagarmagar0709/myapp:latest .
+      - name: Build Docker Image
+        run: docker build -t sagarmagar0709/myapp:${{ steps.vars.outputs.TAG }} .
 
-      - name: Push Docker image to Docker Hub
-        run: docker push sagarmagar0709/myapp:latest
+      - name: Push Docker Image
+        run: docker push sagarmagar0709/myapp:${{ steps.vars.outputs.TAG }}
 
-      - name: Update image in deployment.yaml
+      - name: Update deployment.yaml with new timestamp tag
         run: |
-          sed -i 's|^\s*image:.*|          image: sagarmagar0709/myapp:latest|' k8s/deployment.yaml
+          sed -i 's|^\s*image:.*|          image: sagarmagar0709/myapp:${{ steps.vars.outputs.TAG }}|' k8s/deployment.yaml
           cat k8s/deployment.yaml
 
-      - name: Commit and push updated deployment.yaml
+      - name: Commit and Push deployment.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,5 +47,5 @@ jobs:
           git config --global user.email "actions@github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add k8s/deployment.yaml
-          git diff --cached --quiet && echo "No changes to commit" || git commit -m "chore: update image tag to latest"
+          git diff --cached --quiet && echo "No changes to commit" || git commit -m "chore: update image tag to ${{ steps.vars.outputs.TAG }}"
           git push || echo "Nothing to push"
