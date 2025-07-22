@@ -1,12 +1,10 @@
-#1##app.py123
-
 from flask import Flask
 
 app = Flask(__name__)
 
 @app.route('/')
-def hello():
-    return "Hello from sagar"
+def home():
+    return "Hello from Flask inside Kubernetes!"
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9000)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)
