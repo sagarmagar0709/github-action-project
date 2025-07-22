@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: myapp
-          image: sagarmagar0709/myapp:latest-1753176464
+          image: sagarmagar0709/myapp:latest-1753177033
           ports:
             - containerPort: 8080
